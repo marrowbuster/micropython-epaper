@@ -4,17 +4,17 @@ import sys
 
 from uctypes import *
 
+pins = {'rst_pin': 17,
+        'dc_pin': 25,
+        'cs_pin': 8,
+        'busy_pin': 24,
+        'mosi_pin': 10,
+        'sclk_pin': 11}
+
 class RP2040PiZero:
     
-    pins = {'rst_pin': 17
-            'dc_pin': 25
-            'cs_pin': 8
-            'busy_pin': 24
-            'mosi_pin': 10
-            'sclk_pin': 11}
-    
-    self.input_pins = {}
-    self.output_pins = {}
+    input_pins = {}
+    output_pins = {}
     
     
     def __init__(self):
@@ -26,22 +26,22 @@ class RP2040PiZero:
                               phase = 1,
                               bits = 8,
                               firstbit = SPI.MSB,
-                              sck = Pin(self.pins['sclk_pin']),
-                              mosi = Pin(self.pins['mosi_pin']))
+                              sck = Pin(pins['sclk_pin']),
+                              mosi = Pin(pins['mosi_pin']))
         
         for pin in ['dc_pin', 'rst_pin']:
-            self.output_pins[self.pins[pin]] = Pin(self.pins[pin],
+            self.output_pins[pins[pin]] = Pin(pins[pin],
                                                 mode = Pin.OUT)
             
         # cs is active high, must lower the signal to select it
         # only for rp2040/2350, may not work on other microcontrollers
-        self.output_pins[self.pins['cs_pin']] = Pin(self.pins['cs_pin'],
+        self.output_pins[pins['cs_pin']] = Pin(pins['cs_pin'],
                                                  mode = Pin.OUT,
-                                                 value = Pin.HIGH)
+                                                 value = 1)
         
         # original waveshare code had this configured as a button, internal
         # pull-up resistor required.
-        self.input_pins[self.pins['busy_pin']] = Pin(self.pins['busy_pin'],
+        self.input_pins[pins['busy_pin']] = Pin(pins['busy_pin'],
                                                   mode = Pin.IN,
                                                   pull = Pin.PULL_UP)
     
@@ -54,10 +54,10 @@ class RP2040PiZero:
     def select_chip(self):
         # as previously mentioned, cs is active high, must lower the signal to
         # select it only for rp2040/2350, may not work on other microcontrollers
-        self.gpio_cs_pin.low()
+        self.output_pins[pins['cs_pin']].low()
         
     def deselect_chip(self):
-        self.gpio_cs_pin.high()
+        self.output_pins[pins['cs_pin']].high()
         
     def digital_write(self, pin, level):
         if level not in range(0, 2):
