@@ -11,5 +11,14 @@
     ],
     "python.analysis.extraPaths": [
         "~/.micropico-stubs/included"
-    ]
+    ],
+    "files.associations": {
+        "runtime.h": "c",
+        "mpstate.h": "c",
+        "mpconfig.h": "c",
+        "nlr.h": "c",
+        "obj.h": "c",
+        "mpconfigport.h": "c",
+        "mpconfigport_common.h": "c"
+    }
 }
