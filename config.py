@@ -1,5 +1,5 @@
 import machine
-import utime
+import time
 import sys
 
 from uctypes import *
@@ -8,8 +8,8 @@ pins = {'rst_pin': 17,
         'dc_pin': 25,
         'cs_pin': 8,
         'busy_pin': 24,
-        'mosi_pin': 10,
-        'sclk_pin': 11}
+        'mosi_pin': 11,
+        'sclk_pin': 10}
 
 class RP2040PiZero:
     
@@ -27,7 +27,8 @@ class RP2040PiZero:
                               bits = 8,
                               firstbit = SPI.MSB,
                               sck = Pin(pins['sclk_pin']),
-                              mosi = Pin(pins['mosi_pin']))
+                              mosi = Pin(pins['mosi_pin']),
+                              miso = None)
         
         for pin in ['dc_pin', 'rst_pin']:
             self.output_pins[pins[pin]] = Pin(pins[pin],
@@ -72,5 +73,8 @@ class RP2040PiZero:
             return self.input_pins[pin].value()
         else:
             raise ValueError(f'Pin {pin} isn\'t configured as an input')
+        
+    def delay_ms(self, ms):
+        time.sleep(ms / 1000.0)
     
     
