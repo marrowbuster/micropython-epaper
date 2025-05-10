@@ -1,3 +1,4 @@
+# this assumes the config module has already been uploaded to the board's internal storage
 import config
 
 commands = {0x01, 0x03, 0x04, 0x08, 0x09, 0x0a, 0x0c, 0x10, 0x11, 0x12, 0x14, 0x15,
@@ -30,8 +31,10 @@ class EPD2in13v4:
         config.delay_ms(20)
     
     def is_valid_command(self, command):
+        if not isinstance(command, int):
+            raise ValueError(f"command must be of type int, got {type(command)}")
         if command not in commands:
-            raise ValueError("Invalid command specified")
+            raise ValueError("invalid command specified")
         return command
     
     def send_command(self, command):
@@ -39,7 +42,7 @@ class EPD2in13v4:
             cmd = self.is_valid_command(command)
             self.pins['dc_pin'].low()
             self.pins['cs_pin'].low()
-            config.spi_write([command])
+            config.spi_write([cmd])
             self.pins['cs_pin'].high()
-        except ValueError:
-            print('Invalid command')
+        except ValueError as e:
+            print(f'command send error: {e}')
