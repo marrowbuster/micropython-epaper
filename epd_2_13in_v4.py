@@ -40,9 +40,17 @@ class EPD2in13v4:
     def send_command(self, command):
         try:
             cmd = self.is_valid_command(command)
+            # d/c means data/command, pull high for data, pull low for command
             self.pins['dc_pin'].low()
             self.pins['cs_pin'].low()
             config.spi_write([cmd])
             self.pins['cs_pin'].high()
         except ValueError as e:
             print(f'command send error: {e}')
+
+    def send_data(self, data):
+        # d/c means data/command, pull high for data, pull low for command
+        self.pins['dc_pin'].high()
+        self.pins['cs_pin'].low()
+        config.spi_write([data])
+        self.pins['dc_pin'].high()
