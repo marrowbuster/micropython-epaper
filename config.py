@@ -59,12 +59,13 @@ class RP2040PiZero:
         
     def deselect_chip(self):
         self.output_pins[pins['cs_pin']].high()
-        
+    
+    # should probably add functionality to use either pin name or number
     def digital_write(self, pin, level):
         if level not in range(0, 2):
             raise ValueError('level must be either 0 or 1')
         if pin in self.output_pins:
-            self.output_pins[pin].value(level)
+            self.output_pins[pins[pin]].value(level)
         else:
             raise ValueError(f'Pin {pin} isn\'t configured as an output')
 
@@ -76,5 +77,15 @@ class RP2040PiZero:
         
     def delay_ms(self, ms):
         time.sleep(ms / 1000.0)
+
+    def data_mode(self):
+        self.digital_write(pins['dc_pin'], 1)
+
+    def command_mode(self):
+        self.digital_write(pins['dc_pin'], 0)
+
+instance = RP2040PiZero()
+for f in [d for d in dir(instance) if not d.startswith('_')]:
+    setattr(sys.modules[__name__], f, getattr(instance, f))
     
     

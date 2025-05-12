@@ -23,11 +23,11 @@ class EPD2in13v4:
 
     def reset(self):
         # reset is active low
-        self.pins['rst_pin'].high()
+        config.digital_write(self.pins['rst_pin'], 1)
         config.delay_ms(20)
-        self.pins['rst_pin'].low()
+        config.digital_write(self.pins['rst_pin'], 0)
         config.delay_ms(2)
-        self.pins['rst_pin'].high()
+        config.digital_write(self.pins['rst_pin'], 1)
         config.delay_ms(20)
     
     def is_valid_command(self, command):
@@ -41,16 +41,35 @@ class EPD2in13v4:
         try:
             cmd = self.is_valid_command(command)
             # d/c means data/command, pull high for data, pull low for command
-            self.pins['dc_pin'].low()
-            self.pins['cs_pin'].low()
+            config.command_mode()
+            config.select_chip()
             config.spi_write([cmd])
-            self.pins['cs_pin'].high()
+            config.deselect_chip()
         except ValueError as e:
             print(f'command send error: {e}')
 
     def send_data(self, data):
         # d/c means data/command, pull high for data, pull low for command
-        self.pins['dc_pin'].high()
-        self.pins['cs_pin'].low()
+        config.data_mode()
+        config.select_chip()
         config.spi_write([data])
-        self.pins['dc_pin'].high()
+        config.deselect_chip()
+
+    def busy(self):
+        while config.digital_read(self.pins['busy_pin']):
+            config.delay_ms(10)
+
+    def set_display_window(self, x0, y0, x1, y1):
+        # RAM is organised by byte
+        self.send_command(0x44)
+        self.send_data((x0 >> 3) & 0xff)
+        self.send_data((x1 >> 3) & 0xff)
+
+        # We first gotta send the lower 8 bits and then the upper 9th
+        # bit of each y coord
+        self.send_command(0x45)
+        self.send_data(y0 & 0xff)
+        self.send_data((y0 >> 8) & 0xff)
+        self.send_data(y1 & 0xff)
+        self.send_data((y1 >> 8) & 0xff)
+        
