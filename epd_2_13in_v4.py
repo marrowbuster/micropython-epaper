@@ -83,3 +83,33 @@ class EPD2in13v4:
         self.send_command(0x4f)
         self.send_data(y & 0xff)
         self.send_data((y >> 8) & 0xff)
+    
+    def startup(self):
+        self.reset()
+
+        self.busy()
+        self.send_command(0x12)
+        self.busy()
+
+        self.send_command(0x01)
+        # 249 in decimal, datasheet specifies the number of lines for
+        # the driver, 250 (due to a vertical resolution of 250px) which
+        # is defined in the datasheet as "MUX[8:0] + 1" (page 34)
+        self.send_data(0xf9)
+        self.send_data(0x00)
+        self.send_data(0x00)
+
+        self.send_command(0x11)
+        self.send_command(0x03)
+
+        self.set_display_window(0, 0, self.display_width - 1, self.display_height - 1)
+        self.set_cursor(0, 0)
+
+        self.send_command(0x3c)
+        self.send_data(0x05)
+
+        self.send_command(0x18)
+        self.send_data(0x80)
+        self.send_data(0x80)
+
+        self.busy()
