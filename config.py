@@ -52,6 +52,11 @@ class RP2040PiZero:
     def spi_read(self, num_bytes):
         return self.spi_device.read(num_bytes)
     
+    def spi_write_readinto(self, write_data, read_data):
+        if len(write_data) != len(read_data):
+            raise ValueError('write and read buffers must be of the same length')
+        self.spi_device.write_readinto(write_data, read_data)
+    
     def select_chip(self):
         # as previously mentioned, cs is active high, must lower the signal to
         # select it only for rp2040/2350, may not work on other microcontrollers
@@ -67,13 +72,13 @@ class RP2040PiZero:
         if pin in self.output_pins:
             self.output_pins[pins[pin]].value(level)
         else:
-            raise ValueError(f'Pin {pin} isn\'t configured as an output')
+            raise ValueError(f'pin {pin} isn\'t configured as an output')
 
     def digital_read(self, pin):
         if pin in self.input_pins:
             return self.input_pins[pin].value()
         else:
-            raise ValueError(f'Pin {pin} isn\'t configured as an input')
+            raise ValueError(f'pin {pin} isn\'t configured as an input')
         
     def delay_ms(self, ms):
         time.sleep(ms / 1000.0)
@@ -83,6 +88,11 @@ class RP2040PiZero:
 
     def command_mode(self):
         self.digital_write(pins['dc_pin'], 0)
+
+    def deinit(self):
+        self.spi_device.deinit()
+
+    
 
 instance = RP2040PiZero()
 for f in [d for d in dir(instance) if not d.startswith('_')]:

@@ -44,16 +44,19 @@ class EPD2in13v4:
             config.command_mode()
             config.select_chip()
             config.spi_write([cmd])
-            config.deselect_chip()
         except ValueError as e:
             print(f'command send error: {e}')
+        finally:
+            config.deselect_chip()
 
     def send_data(self, data):
         # d/c means data/command, pull high for data, pull low for command
-        config.data_mode()
-        config.select_chip()
-        config.spi_write([data])
-        config.deselect_chip()
+        try:
+            config.data_mode()
+            config.select_chip()
+            config.spi_write([data])
+        finally:
+            config.deselect_chip()
 
     def busy(self):
         while config.digital_read(self.pins['busy_pin']):
@@ -72,4 +75,11 @@ class EPD2in13v4:
         self.send_data((y0 >> 8) & 0xff)
         self.send_data(y1 & 0xff)
         self.send_data((y1 >> 8) & 0xff)
-        
+    
+    def set_cursor(self, x, y):
+        self.send_command(0x4e)
+        self.send_data(x & 0xff)
+
+        self.send_command(0x4f)
+        self.send_data(y & 0xff)
+        self.send_data((y >> 8) & 0xff)
