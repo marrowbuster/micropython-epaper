@@ -93,12 +93,13 @@ class EPD:
 
     def reset(self):
         # reset is active low
-        config.digital_write(self.pins['rst_pin'], 1)
-        config.delay_ms(20)
-        config.digital_write(self.pins['rst_pin'], 0)
-        config.delay_ms(2)
-        config.digital_write(self.pins['rst_pin'], 1)
-        config.delay_ms(20)
+        self.rst_pin(False)
+        self.delay_ms(200)
+        self.rst_pin(True)
+        self.delay_ms(200)
+
+    def delay_ms(self, interval):
+        utime.sleep_ms(interval)
     
     def is_valid_command(self, command):
         if not isinstance(command, int):
@@ -111,22 +112,22 @@ class EPD:
         try:
             cmd = self.is_valid_command(command)
             # d/c means data/command, pull high for data, pull low for command
-            config.command_mode()
-            config.select_chip()
-            config.spi_write([cmd])
+            self.dc_pin(False)
+            self.cs_pin(False)
+            self.spi_device.write(cmd)
         except ValueError as e:
             print(f'command send error: {e}')
         finally:
-            config.deselect_chip()
+            self.cs_pin(True)
 
     def send_data(self, data):
         # d/c means data/command, pull high for data, pull low for command
         try:
-            config.data_mode()
-            config.select_chip()
-            config.spi_write([data])
+            self.dc_pin(True)
+            self.cs_pin(False)
+            self.spi_device.write(data)
         finally:
-            config.deselect_chip()
+            self.cs_pin(True)
 
     def busy(self):
         while config.digital_read(self.pins['busy_pin']):
