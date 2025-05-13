@@ -130,8 +130,8 @@ class EPD:
             self.cs_pin(True)
 
     def busy(self):
-        while config.digital_read(self.pins['busy_pin']):
-            config.delay_ms(10)
+        while self.busy_pin():
+            self.delay_ms(100)
 
     def set_display_window(self, x0, y0, x1, y1):
         # RAM is organised by byte
@@ -173,7 +173,7 @@ class EPD:
         self.send_command(0x11)
         self.send_command(0x03)
 
-        self.set_display_window(0, 0, self.display_width - 1, self.display_height - 1)
+        self.set_display_window(0, 0, self.width - 1, self.height - 1)
         self.set_cursor(0, 0)
 
         self.send_command(0x3c)
