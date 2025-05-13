@@ -1,5 +1,7 @@
 # this assumes the config module has already been uploaded to the board's internal storage
 import config
+import utime
+from machine import Pin, SPI
 
 commands = {'DRIVER_OUTPUT_CONTROL': 0x01,
             'GATE_DRIVING_VOLTAGE_CONTROL': 0x03,
@@ -51,19 +53,43 @@ commands = {'DRIVER_OUTPUT_CONTROL': 0x01,
             'SET_Y_ADDRESS_COUNTER': 0x4f,
             'NOP': 0x7f}
 
-class EPD2in13v4:
-    display_width = 250
-    display_height = 122
+display_dimensions = {'x': 250,
+                      'y': 122}
+
+rotations = {'0': 0,
+             '90': 1,
+             '180': 2,
+             '270': 3}
+
+class EPD:
     
-    pins = {}
-    
-    def __init__(self):
-        self.pins['rst_pin'] = config.pins['rst_pin']
-        self.pins['dc_pin'] = config.pins['dc_pin']
-        self.pins['cs_pin'] = config.pins['cs_pin']
-        self.pins['busy_pin'] = config.pins['busy_pin']
-        self.pins['mosi_pin'] = config.pins['mosi_pin']
-        self.pins['sclk_pin'] = config.pins['sclk_pin']
+    def __init__(self, rst, dc, cs, busy, sck, pico):
+        self.rst_pin = rst
+        self.rst_pin.mode(Pin.OUT)
+
+        self.dc_pin = dc
+        self.dc_pin.mode(Pin.OUT)
+
+        self.cs_pin = cs
+        self.cs_pin.mode(Pin.OUT)
+        self.cs_pin.pull(Pin.PULL_UP)
+
+        self.busy_pin = busy
+        self.busy_pin.mode(Pin.IN)
+
+        self.spi_device = SPI(1,
+                              baudrate = int(4e6), # lazy af
+                              polarity = 1,
+                              phase = 1,
+                              bits = 8,
+                              firstbit = SPI.MSB,
+                              sck = sck,
+                              mosi = pico,
+                              miso = None)
+        
+        self.width = display_dimensions['x']
+        self.height = display_dimensions['y']
+        self.rotate = rotations['0']
 
     def reset(self):
         # reset is active low
