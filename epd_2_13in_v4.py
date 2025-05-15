@@ -89,7 +89,7 @@ class EPD:
         
         self.width = display_dimensions['x']
         self.height = display_dimensions['y']
-        self.rotate = rotations['0']
+        self.rotation = rotations['0']
 
     def reset(self):
         # reset is active low
@@ -213,3 +213,21 @@ class EPD:
         self.send_data(0x91)
         self.send_command(0x20)
         self.busy()
+    
+    def clear(self, framebuffer, colour):
+        if colour != 0x00 or colour != 0xFF:
+            raise ValueError('colour must be either 0x00 or 0xff')
+        for pixel in range(int(self.width * self.height / 8 + 1)):
+            framebuffer[pixel] = colour
+
+    def set_rotation(self, rotation):
+        if rotation not in [int(r) for r in rotations.keys()]:
+            raise ValueError('rotation must be either 0, 90, 180, or 270')
+        if not rotation % 20:
+            self.width = display_dimensions['x']
+            self.height = display_dimensions['y']
+        else:
+            self.width = display_dimensions['y']
+            self.height = display_dimensions['x']
+        self.rotation = rotation
+    
