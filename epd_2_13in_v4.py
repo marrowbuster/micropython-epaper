@@ -184,3 +184,33 @@ class EPD:
         self.send_data(0x80)
 
         self.busy()
+
+    def fast_startup(self):
+        self.reset()
+
+        self.send_command(0x12)
+        self.busy()
+
+        self.send_command(0x18)
+        self.send_command(0x80)
+
+        self.send_command(0x11)
+        self.send_data(0x03)
+
+        self.set_display_window(0, 0, self.width - 1, self.height - 1)
+        self.set_cursor(0, 0)
+
+        self.send_command(0x22)
+        self.send_data(0xb1)
+        self.send_command(0x20)
+        self.busy()
+
+        self.send_command(0x1a)
+        self.send_data(0x64)
+        self.send_data(0x00)
+
+        self.send_command(0x22)
+        self.send_data(0x91)
+        self.send_command(0x20)
+
+        
