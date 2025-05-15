@@ -212,5 +212,4 @@ class EPD:
         self.send_command(0x22)
         self.send_data(0x91)
         self.send_command(0x20)
-
-        
+        self.busy()
