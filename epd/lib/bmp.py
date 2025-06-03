@@ -1,27 +1,40 @@
-import utime
-import sys
-
 class BMPHeader:
-    SIZE = 0x2
-    RESERVED = 0x6
-    OFFSET = 0xa
-    END = 0xe
-
-    MAGIC_NUMBERS = {
-        b'BM', # Windows 3.x, 9x, NT (3.1 to 11)
-        b'BA', # OS/2 struct bitmap array
-        b'CI', # OS/2 struct colour icon
-        b'CP', # OS/2 const colour pointer
-        b'IC', # OS/2 struct icon
-        b'PT'  # OS/2 pointer
+    offsets = {
+        'SIZE': 0x2,
+        'RESERVED': 0x6,
+        'OFFSET': 0xa,
+        'END': 0xe,
+        'WIDTH': 0x12,
+        'HEIGHT': 0x16,
+        'COLOUR_PLANE': 0x1a,
+        'COLOUR_BIT_DEPTH': 0x1c,
+        'COMPRESSION': 0x1e,
+        'IMAGE_SIZE': 0x22,
+        'X_PPM': 0x26,
+        'Y_PPM': 0x2a,
+        'NUM_COLOURS': 0x2e,
+        'SIG_COLOURS': 0x32,
+        'STOP': 0x36
     }
 
-    # header is only supposed to be 14 bytes so throw away all other data
-    def __init__(self, header):
-        if header[:self.SIZE] not in self.MAGIC_NUMBERS:
-            raise ValueError("Invalid header magic number; valid magic numbers are b'BM', b'BA', b'CI', b'CP', b'IC', and b'PT'")
-        self.size = header[self.SIZE:self.RESERVED]
-        self.offset = header[self.OFFSET:self.END]
+    MAGIC_NUMBER = b'BM'
 
-    
+    # header is actually 54 bytes
+    def __init__(self, header):
+        if header[:self.offsets['SIZE']] != self.MAGIC_NUMBER:
+            raise ValueError("Invalid header magic number")
+        if header[self.offsets['COLOUR_PLANE']:self.offsets['COLOUR_BIT_DEPTH']] != 1:
+            raise ValueError("Bitmap headers specify only one colour plane")
+        if header[self.offsets['COLOUR_BIT_DEPTH']:self.offsets['COMPRESSION']] != 1:
+            raise ValueError("Monochrome display; only two colours")
+        if header[self.offsets['COMPRESSION']:self.offsets['IMAGE_SIZE']] != 0:
+            raise ValueError("Compression is not supported on this device")
+        if header[self.offsets['NUM_COLOURS']:self.offsets['SIG_COLOURS']] > 1:
+            raise ValueError("Monochrome display; only two colours max")
+        if header[self.offsets['SIG_COLOURS']:self.offsets['STOP']] > 1:
+            raise ValueError("CMonochrome display; only two significant colours max")
         
+        self.size = int.from_bytes(header[self.offsets['SIZE']:self.offsets['RESERVED']], 'little')
+        self.offset = int.from_bytes(header[self.offsets['OFFSETS']:self.offsets['END']], 'little')
+        self.width = int.from_bytes(header[self.offsets['WIDTH']:self.offsets['HEIGHT']], 'little')
+        self.height = int.from_bytes(header[self.offsets['HEIGHT']:self.offsets['COLOUR_PLANE']], 'little')
